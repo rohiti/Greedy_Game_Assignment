@@ -21,21 +21,23 @@ data$timestamp = strptime(data$timestamp, format = "%Y-%m-%d %H:%M:%OS")
 options(digits.secs = 6)
 data$ai5 = as.factor(data$ai5)
 
-result = c("Game ID", "Number of Sessions", "Number of Valid Sessions", "Average valid session time")
+result = c(0, 0, 0, 0)
 
 for(k in 1:length(table(data$game_id))){
-  a = subset(data, data$game_id == levels(data$game_id)[k]) 
   sessions = 0
   valid = 0
   session_time = 0
+  a = subset(data, data$game_id == levels(data$game_id)[k]) 
   for(i in 1:length(table(a$ai5))){
     aj = subset(a, a$ai5 == levels(data$ai5)[i])
+    if (aj[nrow(aj), 5] == "ggstart") sessions = 1
     if (nrow(aj) > 1){
     for(j in 1:(nrow(aj)-1)){
       if(aj[j,5] == "ggstart"  & aj[j+1,5] == "ggstop"){
         if(1 <(aj[j+1,8] - aj[j,8]) & (aj[j+1,8] - aj[j,8]) < 60)
           sessions = sessions + 1
         else if((aj[j+1,8] - aj[j,8]) > 60){
+          sessions = sessions + 1
           valid = valid + 1
           session_time = aj[j+1,8] - aj[j,8] + session_time
         }
@@ -44,8 +46,8 @@ for(k in 1:length(table(data$game_id))){
         if((aj[j,8] - aj[j+1,8]) < 30)
           sessions = sessions -1
       }
+      result = rbind(result, c(k,  sessions,valid, session_time/valid))
     }
-  result = rbind(result, c(as.character(levels(data$game_id[k]),  sessions,valid, session_time/valid)))
     }
   }
 }
